@@ -8,6 +8,8 @@ backups with header validation.
 - **Create Backup**: Saves a timestamped copy of your spreadsheet, then
   clears all data except headers
 - **Restore from Backup**: Restores headers from the latest backup of the day
+- **Recreate Sheet**: Rebuilds a sheet from a predefined configuration with
+  values and styles
 
 ## Prerequisites
 
@@ -42,6 +44,13 @@ backups with header validation.
 2. Selects the latest backup based on timestamp
 3. Validates the backup has correct headers
 4. Restores the headers to the current sheet
+
+### Recreate Sheet Process
+1. Reads sheet configurations from `config.gs`
+2. Shows a dialog with available sheet configurations
+3. Clears the selected sheet
+4. Applies configured cell values and ranges
+5. Applies shared styles and cell-specific style overrides
 
 ## Backup Structure
 ```
