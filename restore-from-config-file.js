@@ -1,31 +1,36 @@
-const novedades = {
-  'A1:D1': 'THE HAT MADRID',
-  E1: new Date(),
-  A2: 'ORDEN',
-  B2: 'NOVEDAD',
-  C2: 'FECHA',
-  D2: 'HORA',
-  E2: 'INFO',
-  F1: '',
-  F2: '',
-};
+function showReCreateSheetDialog() {
+  const template = HtmlService.createTemplateFromFile('recreate-sheet-dialog');
+  template.config = config;
 
-function reCreateSheet() {
-  const hoja =
-    SpreadsheetApp.getActiveSpreadsheet().getSheetByName('NOVEDADES');
+  const htmlOutput = template.evaluate()
+    .setWidth(300)
+    .setHeight(180);
 
-  if (!hoja) {
-    SpreadsheetApp.getUi().alert('La hoja "NOVEDADES" no existe.');
+  SpreadsheetApp.getUi().showModalDialog(htmlOutput, 'Recrear Hoja');
+}
+
+function processReCreateSheet(configKey) {
+  const selectedConfig = config[configKey];
+  if (selectedConfig) {
+    reCreateSheet(selectedConfig.sheetName, selectedConfig);
+  }
+}
+
+function reCreateSheet(sheetName, config) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+
+  if (!sheet) {
+    SpreadsheetApp.getUi().alert(`La hoja "${sheetName}" no existe.`);
     return;
   }
 
   // recreate the sheet
-  hoja.clear(); // Clear existing content
+  sheet.clear(); // Clear existing content
 
   // Set headers and initial values based on the config
-  for (const range in novedades) {
-    const cellRange = hoja.getRange(range);
-    let value = novedades[range];
+  for (const range in config.values) {
+    const cellRange = sheet.getRange(range);
+    let value = config.values[range];
 
     // Check if this is a range (contains ':') that needs merging
     if (range.includes(':')) {
@@ -43,17 +48,20 @@ function reCreateSheet() {
 
     cellRange.setValue(value);
 
-    // Apply styling
-    cellRange
-      .setBackground('#000000')
-      .setFontColor('#FFFFFF')
-      .setFontFamily('Comfortaa')
-      .setFontWeight('bold')
-      .setHorizontalAlignment('center')
-      .setVerticalAlignment('middle');
+    // Apply styling: merge shared styles with cell-specific overrides
+    const sharedStyles = config.sharedStyles || {};
+    const cellSpecificStyles = (config.cellStyles && config.cellStyles[range]) || {};
+    const finalStyles = { ...sharedStyles, ...cellSpecificStyles };
+
+    // Apply each style method
+    for (const [methodName, value] of Object.entries(finalStyles)) {
+      if (value !== null && value !== undefined) {
+        cellRange[methodName](value);
+      }
+    }
   }
 
   SpreadsheetApp.getUi().alert(
-    'La hoja "NOVEDADES" ha sido recreada correctamente.'
+    `La hoja "${sheetName}" ha sido recreada correctamente.`
   );
 }

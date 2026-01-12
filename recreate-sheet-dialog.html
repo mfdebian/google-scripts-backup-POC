@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      select {
+        width: 100%;
+        padding: 8px;
+        font-size: 14px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        width: 100%;
+        margin-top: 10px;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 5px;
+      }
+      .loading {
+        display: none;
+        text-align: center;
+        margin-top: 10px;
+        color: #666;
+      }
+      .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #4CAF50;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+        margin-right: 10px;
+        vertical-align: middle;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <label for="sheetSelector">Selecciona la hoja a recrear:</label>
+    <select id="sheetSelector">
+      <? for (const [key, cfg] of Object.entries(config)) { ?>
+        <option value="<?= key ?>"><?= cfg.sheetName ?></option>
+      <? } ?>
+    </select>
+    <button id="recreateBtn" onclick="recreateSelectedSheet()">Recrear Hoja</button>
+    <div class="loading" id="loadingIndicator">
+      <div class="spinner"></div>
+      <span>Recreando hoja...</span>
+    </div>
+
+    <script>
+      function recreateSelectedSheet() {
+        const selector = document.getElementById('sheetSelector');
+        const button = document.getElementById('recreateBtn');
+        const loading = document.getElementById('loadingIndicator');
+        const selectedSheet = selector.value;
+
+        // Disable button and show loading
+        button.disabled = true;
+        selector.disabled = true;
+        loading.style.display = 'block';
+
+        google.script.run
+          .withSuccessHandler(onSuccess)
+          .withFailureHandler(onFailure)
+          .processReCreateSheet(selectedSheet);
+      }
+
+      function onSuccess() {
+        google.script.host.close();
+      }
+
+      function onFailure(error) {
+        // Re-enable button and hide loading on error
+        const button = document.getElementById('recreateBtn');
+        const selector = document.getElementById('sheetSelector');
+        const loading = document.getElementById('loadingIndicator');
+
+        button.disabled = false;
+        selector.disabled = false;
+        loading.style.display = 'none';
+
+        alert('Error: ' + error.message);
+      }
+    </script>
+  </body>
+</html>
